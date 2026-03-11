@@ -1,0 +1,35 @@
+name: 🔥 Daily Streak Bot
+
+on:
+  schedule:
+    - cron: '30 18 * * *'  # Runs every day at 12:00 AM IST (6:30 PM UTC)
+  workflow_dispatch:        # Allows manual trigger from GitHub UI anytime
+
+jobs:
+  commit-daily:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 🤖 Run Streak Bot
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python bot/streak_bot_actions.py
+
+      - name: 📤 Commit and Push
+        run: |
+          git config --global user.name "GitStreak Bot"
+          git config --global user.email "bot@gitstreak.com"
+          git add .
+          git diff --staged --quiet || git commit -m "feat: daily streak commit $(date +'%Y-%m-%d')"
+          git push
